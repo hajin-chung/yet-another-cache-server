@@ -36,15 +36,17 @@ int main(int argc, char *argv[]) {
 		exit(0);
 	}
 
-	memset(buf, '\0', sizeof(buf));
-	printf("> ");
-	scanf("%s", buf);
-	write(clientSocket, buf, strlen(buf) - 1); // remove new line
-	printf("length %ld\n", strlen(buf));
+  for (;;) {
+    memset(buf, '\0', sizeof(buf));
+    printf("> ");
+    scanf("%s", buf);
+    write(clientSocket, buf, strlen(buf)); // remove new line
+    printf("length %ld\n", strlen(buf));
 
-	memset(buf, '\0', sizeof(buf));	
-	read(clientSocket, buf, BUF_SIZE);
-	printf("< %s\n", buf);
+    memset(buf, '\0', sizeof(buf));	
+    read(clientSocket, buf, BUF_SIZE);
+    printf("< %s\n", buf);
+  }
 
 	close(clientSocket);
 

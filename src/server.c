@@ -51,8 +51,8 @@ int main(int argc, char *argv[]) {
 				handleRequest(epollfd, events[i].data.fd);
 
 				// close connection right after request
-				close(events[i].data.fd);
-				epoll_ctl(epollfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
+				// close(events[i].data.fd);
+				// epoll_ctl(epollfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
 			}
 		}
 	}
@@ -106,7 +106,7 @@ void handleRequest(int epollfd, int clientSocket) {
 	memset(buf, 0, sizeof(buf));
 	n = read(clientSocket, buf, sizeof(buf));
 
-	logger(INFO, "data: %s\n", buf);
+	logger(INFO, "data: %s", buf);
 	// TODO: implement cache logic here
 	write(clientSocket, "hi", 2);
 }
