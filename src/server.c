@@ -46,8 +46,9 @@ int main(int argc, char *argv[]) {
       if (events[i].data.fd == serverSocket) { 
         // new connection
         handleNewClient(epollfd, serverSocket);
-      } else { 
+      } else if (events[i].events & EPOLLIN) { 
         // handle client request
+        handleRequest(epollfd, events[i]);
       }
     }
   }
@@ -94,8 +95,19 @@ void handleNewClient(int epollfd, int serverSocket) {
   epoll_ctl_add(epollfd, clientSocket, EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP);
 }
 
-void handleRequest() { // TODO: implement
+void handleRequest(int epollfd, struct epoll_event ev) { // TODO: implement
+  char buf[BUF_SIZE];
+  int n;
 
+  memset(buf, 0, sizeof(buf));
+  n = read(ev.data.fd, buf, sizeof(buf));
+
+  logger(INFO, "data: %s\n", buf);
+  // TODO: implement cache logic here
+  write(ev.data.fd, "hi", 2);
+
+  // close connection right after request
+  epoll_ctl(epollfd, EPOLL_CTL_DEL, ev.data.fd, NULL);
 }
 
 void epoll_ctl_add(int epollfd, int fd, uint32_t events) {
