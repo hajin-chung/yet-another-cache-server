@@ -4,12 +4,14 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h> 
+#include <fcntl.h> 
 
 #include "server.h"
 #include "logger.h"
 
 int main(int argc, char *argv[]) {
-  struct epoll_event ev, events[MAX_EVENT];
+  struct epoll_event events[MAX_EVENT];
   int serverSocket, clientSocket, nfds, epollfd;
   int i;
 
@@ -19,9 +21,6 @@ int main(int argc, char *argv[]) {
 
   logger(INFO, "initializing PORT = %d", PORT);
 
-  // initializing server socket
-  createTcpSocket(serverSocket, PORT); 
-
   // initializing epoll
   epollfd = epoll_create1(0);
   if (epollfd == -1) {
@@ -29,12 +28,10 @@ int main(int argc, char *argv[]) {
     exit(0);
   }
 
-  ev.events = EPOLLIN;
-  ev.data.fd = serverSocket;
-  if (epoll_ctl(epollfd, EPOLL_CTL_ADD, serverSocket, &ev) == -1) {
-    logger(ERROR, "epoll_ctl adding serverSocket");
-    exit(0);
-  }
+  // initializing server socket
+  createTcpSocket(&serverSocket, PORT); 
+
+  epoll_ctl_add(epollfd, serverSocket, EPOLLIN);
 
   for (;;) {
     nfds = epoll_wait(epollfd, events, MAX_EVENT, -1);
@@ -44,8 +41,11 @@ int main(int argc, char *argv[]) {
     }
 
     for (i = 0; i < nfds; i++) {
-      if (events[i].data.fd == serverSocket) { // new connection
+      if (events[i].data.fd == serverSocket) { 
+        // new connection
         handleNewClient(epollfd, serverSocket);
+      } else { 
+        // handle client request
       }
     }
   }
@@ -69,18 +69,47 @@ void createTcpSocket(int* sock, int port) {
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons(port);
 
-	setsockopt(*sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&on, sizeof(on));
-	
 	if (bind(*sock, (struct sockaddr*) &addr, sizeof(addr))==-1) {
     logger(ERROR, "TCP socket bind() error");
     exit(0);
 	}
 
-	if (listen(*sock, 100)==-1) {
+  setNonBlocking(sock);
+	if (listen(*sock, MAX_CONN) == -1) {
     logger(ERROR, "TCP socket listen() error");
     exit(0);
 	}
 }
 
 void handleNewClient(int epollfd, int serverSocket) {
+  int clientSocket, clientLen;
+  struct sockaddr_in clientAddr;
+
+  clientLen = sizeof(clientAddr);
+  clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientLen);
+
+  setNonBlocking(clientSocket);
+  epoll_ctl_add(epollfd, clientSocket, EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP);
+}
+
+void handleRequest() { // TODO: implement
+
+}
+
+void epoll_ctl_add(int epollfd, int fd, uint32_t events) {
+  struct epoll_event ev;
+
+  ev.events = events;
+  ev.data.fd = fd;
+  if (epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
+    logger(ERROR, "epoll_ctl adding fd");
+    exit(0);
+  }
+}
+
+int setNonBlocking(int fd) { // TODO: understand this
+  if (fcntl(fd, F_SETFD, fcntl(fd, F_GETFD, 0) | O_NONBLOCK) == -1) {
+    return -1;
+  }
+  return 0;
 }
