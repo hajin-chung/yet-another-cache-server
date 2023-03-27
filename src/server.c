@@ -48,7 +48,11 @@ int main(int argc, char *argv[]) {
         handleNewClient(epollfd, serverSocket);
       } else if (events[i].events & EPOLLIN) { 
         // handle client request
-        handleRequest(epollfd, events[i]);
+        handleRequest(epollfd, events[i].data.fd);
+
+        // close connection right after request
+        close(events[i].data.fd);
+        epoll_ctl(epollfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
       }
     }
   }
@@ -95,19 +99,16 @@ void handleNewClient(int epollfd, int serverSocket) {
   epoll_ctl_add(epollfd, clientSocket, EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP);
 }
 
-void handleRequest(int epollfd, struct epoll_event ev) { // TODO: implement
+void handleRequest(int epollfd, int clientSocket) {
   char buf[BUF_SIZE];
   int n;
 
   memset(buf, 0, sizeof(buf));
-  n = read(ev.data.fd, buf, sizeof(buf));
+  n = read(clientSocket, buf, sizeof(buf));
 
   logger(INFO, "data: %s\n", buf);
   // TODO: implement cache logic here
-  write(ev.data.fd, "hi", 2);
-
-  // close connection right after request
-  epoll_ctl(epollfd, EPOLL_CTL_DEL, ev.data.fd, NULL);
+  write(clientSocket, "hi", 2);
 }
 
 void epoll_ctl_add(int epollfd, int fd, uint32_t events) {
