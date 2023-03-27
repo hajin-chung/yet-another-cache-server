@@ -1,7 +1,7 @@
 enum LogLevel {
-  INFO,
-  WARNING,
-  ERROR
+	INFO,
+	WARNING,
+	ERROR
 };
 
 // TODO: input where to print out logs (stdout, specific file)
