@@ -11,6 +11,8 @@
 
 #include "server.h"
 #include "logger.h"
+#include "request.h"
+#include "response.h"
 
 int main(int argc, char *argv[]) {
 	struct epoll_event events[MAX_EVENT];
@@ -104,11 +106,27 @@ void handleRequest(int epollfd, int clientSocket) {
 	int n;
 
 	memset(buf, 0, sizeof(buf));
-	n = read(clientSocket, buf, sizeof(buf));
+  // TODO: handle requests bigger than BUF_SIZE
+	n = read(clientSocket, buf, sizeof(buf)); 
 
-	logger(INFO, "data: %s", buf);
-	// TODO: implement cache logic here
-	write(clientSocket, "hi", 2);
+  struct Query* query = parseRequest(buf); 
+  if (query->isError) {
+    const char* message = "something gone wrong";
+    char* response = encodeError(0, strlen(message), message);
+    write(clientSocket, response, sizeof(response));
+  } else if (query->type == SetQueryType) {
+    // TODO: implement
+  } else if (query->type == GetQueryType) {
+    // TODO: implement
+  } else if (query->type == DelQueryType) {
+    // TODO: implement
+  } else {
+    const char* message = "something gone wrong";
+    char* response = encodeError(0, strlen(message), message);
+    write(clientSocket, response, sizeof(response));
+  }
+
+  free(query);
 }
 
 void epoll_ctl_add(int epollfd, int fd, uint32_t events) {
