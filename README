@@ -1,0 +1,8 @@
+Yet another Cache Server
+
+writing my own cache server in plain c!
+
+features
+1. set: K, V -> success / fail
+2. get: K -> V
+3. delete: K -> success / fail
