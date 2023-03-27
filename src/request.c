@@ -10,19 +10,19 @@ struct Query* parseRequest(char* buf) {
 
 	char* cursor = buf;
 	unsigned tmp;
-	memcpy(query->type, cursor, 1); cursor += 1;
+	memcpy(&query->type, cursor, 1); cursor += 1;
 
 	if (query->type == SetQueryType) {
 		memcpy(&tmp, cursor, sizeof(unsigned)); cursor += sizeof(unsigned);
 		query->keySize = ntohl(tmp);
 		memcpy(&tmp, cursor, sizeof(unsigned)); cursor += sizeof(unsigned);
 		query->keySize = ntohl(tmp);
-		memcpy(query->key, cursor, query->keySize); cursor += query->keySize;
-		memcpy(query->val, cursor, query->valSize);
+		memcpy(&query->key, cursor, query->keySize); cursor += query->keySize;
+		memcpy(&query->val, cursor, query->valSize);
 	} else if (query->type & (GetQueryType | SetQueryType )) {
 		memcpy(&tmp, cursor, sizeof(unsigned)); cursor += sizeof(unsigned);
 		query->keySize = ntohl(tmp);
-		memcpy(query->key, cursor, query->keySize); cursor += query->keySize;
+		memcpy(&query->key, cursor, query->keySize); cursor += query->keySize;
 	} else {
 		query->isError = 0x01;
 	}

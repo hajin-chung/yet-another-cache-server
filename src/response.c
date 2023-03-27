@@ -18,6 +18,8 @@ char* encodeQueryWithValue(unsigned valSize, char* val) {
   tmp = htonl(valSize);
   memcpy(cursor, &tmp, sizeof(unsigned)); cursor += sizeof(unsigned);
   memcpy(cursor, val, valSize);
+
+  return response;
 }
 
 char* encodeQuery() {
@@ -27,6 +29,8 @@ char* encodeQuery() {
 
   memset(response, 0, size);
   memcpy(response, &success, sizeof(char));
+
+  return response;
 }
 
 char* encodeError(unsigned errorCode, unsigned messageSize, char* message) {
@@ -45,4 +49,6 @@ char* encodeError(unsigned errorCode, unsigned messageSize, char* message) {
   tmp = htonl(messageSize);
   memcpy(cursor, &tmp, sizeof(unsigned)); cursor += sizeof(unsigned);
   memcpy(cursor, message, messageSize);
+
+  return response;
 }

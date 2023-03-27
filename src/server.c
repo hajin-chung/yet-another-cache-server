@@ -16,7 +16,7 @@
 
 int main(int argc, char *argv[]) {
 	struct epoll_event events[MAX_EVENT];
-	int serverSocket, clientSocket, nfds, epollfd;
+	int serverSocket, nfds, epollfd;
 	int i;
 
 	if (argc >= 2) {
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 				handleNewClient(epollfd, serverSocket);
 			} else if (events[i].events & EPOLLIN) { 
 				// handle client request
-				handleRequest(epollfd, events[i].data.fd);
+				handleRequest(events[i].data.fd);
 
 				// close connection right after request
 				// close(events[i].data.fd);
@@ -64,7 +64,6 @@ int main(int argc, char *argv[]) {
 
 void createTcpSocket(int* sock, int port) {
 	struct sockaddr_in addr;
-	int on = 1;
 	
 	logger(INFO, "initializing socket");
 	*sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -91,7 +90,8 @@ void createTcpSocket(int* sock, int port) {
 }
 
 void handleNewClient(int epollfd, int serverSocket) {
-	int clientSocket, clientLen;
+	int clientSocket;
+  unsigned clientLen;
 	struct sockaddr_in clientAddr;
 
 	clientLen = sizeof(clientAddr);
@@ -101,18 +101,21 @@ void handleNewClient(int epollfd, int serverSocket) {
 	epoll_ctl_add(epollfd, clientSocket, EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP);
 }
 
-void handleRequest(int epollfd, int clientSocket) {
+void handleRequest(int clientSocket) {
 	char buf[BUF_SIZE];
 	int n;
 
 	memset(buf, 0, sizeof(buf));
   // TODO: handle requests bigger than BUF_SIZE
 	n = read(clientSocket, buf, sizeof(buf)); 
+  if (n != 0) {
+    // TODO: implement
+  }
 
   struct Query* query = parseRequest(buf); 
   if (query->isError) {
     const char* message = "something gone wrong";
-    char* response = encodeError(0, strlen(message), message);
+    char* response = encodeError(0, strlen(message), (char*)message);
     write(clientSocket, response, sizeof(response));
   } else if (query->type == SetQueryType) {
     // TODO: implement
@@ -122,7 +125,7 @@ void handleRequest(int epollfd, int clientSocket) {
     // TODO: implement
   } else {
     const char* message = "something gone wrong";
-    char* response = encodeError(0, strlen(message), message);
+    char* response = encodeError(0, strlen(message), (char*)message);
     write(clientSocket, response, sizeof(response));
   }
 
