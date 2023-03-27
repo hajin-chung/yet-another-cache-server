@@ -4,5 +4,44 @@ writing my own cache server in plain c!
 
 features
 1. set: K, V -> success / fail
-2. get: K -> V
+2. get: K -> V / NULL
 3. delete: K -> success / fail
+
+spec
+
+request structure
+
+- set query
++------------+----------------+------------------+-------------+---------------+
+| TYPE 1byte | KEY SIZE 4byte | VALUE SIZE 4byte | KEY CONTENT | VALUE CONTENT |
++------------+----------------+------------------+-----------------------------+
+TYPE = 0x01
+
+- get, delete query
++------------+----------------+-------------+
+| TYPE 1byte | KEY SIZE 4byte | KEY CONTENT |
++------------+----------------+-------------+
+TYPE = 0x02 // get
+TYPE = 0x03 // delete
+
+
+response structure
+
+- get query success
++---------------+------------------+---------------+
+| SUCCESS 1byte | VALUE SIZE 4byte | VALUE CONTENT |
++---------------+------------------+---------------+
+
+- set, delete query success
++---------------+
+| SUCCESS 1byte |
++---------------+
+
+SUCCESS = 0x01
+
+- when query fails
++------------+------------------+--------------------+---------+
+| FAIL 1byte | ERROR CODE 4byte | MESSAGE SIZE 4byte | MESSAGE |
++------------+------------------+--------------------+---------+
+
+FAIL = 0x00
