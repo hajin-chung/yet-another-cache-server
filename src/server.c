@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -74,7 +76,7 @@ void createTcpSocket(int* sock, int port) {
     exit(0);
 	}
 
-  setNonBlocking(sock);
+  setNonBlocking(*sock);
 	if (listen(*sock, MAX_CONN) == -1) {
     logger(ERROR, "TCP socket listen() error");
     exit(0);
