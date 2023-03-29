@@ -1,2 +1,5 @@
 # editor config
 .vscode
+
+*.o
+bin
