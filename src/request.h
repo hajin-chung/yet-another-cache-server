@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #define SetQueryType 0x01
 #define GetQueryType 0x02
 #define DelQueryType 0x04
@@ -12,4 +14,4 @@ struct Query {
 };
 
 // TODO: think about parsing multiple buf (bigger than BUF_SIZE)
-struct Query* parseRequest(char* buf);
+struct Query* parseRequest(uint8_t* buf);

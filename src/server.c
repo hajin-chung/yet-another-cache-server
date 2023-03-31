@@ -102,7 +102,7 @@ void handleNewClient(int epollfd, int serverSocket) {
 }
 
 void handleRequest(int clientSocket) {
-	char buf[BUF_SIZE];
+	uint8_t buf[BUF_SIZE];
 	int n;
 
 	memset(buf, 0, sizeof(buf));
@@ -116,7 +116,9 @@ void handleRequest(int clientSocket) {
   if (query->isError) {
     const char* message = "something gone wrong";
     char* response = encodeError(0, strlen(message), (char*)message);
+    logger(INFO, "%s", response);
     write(clientSocket, response, sizeof(response));
+    free(response);
   } else if (query->type == SetQueryType) {
     // TODO: implement
   } else if (query->type == GetQueryType) {
@@ -127,6 +129,7 @@ void handleRequest(int clientSocket) {
     const char* message = "something gone wrong";
     char* response = encodeError(0, strlen(message), (char*)message);
     write(clientSocket, response, sizeof(response));
+    free(response);
   }
 
   free(query);
